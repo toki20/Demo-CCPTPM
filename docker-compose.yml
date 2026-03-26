@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  backend:
+    image: my-qls-backend-image # <-- BẠN CÓ THỂ ĐỔI TÊN Ở ĐÂY
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: qls-backend
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
