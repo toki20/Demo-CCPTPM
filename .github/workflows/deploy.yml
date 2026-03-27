@@ -24,5 +24,27 @@ jobs:
         context: .
         push: true
         tags: |
-          ${{ secrets.DOCKER_USERNAME }}/qls-backend:latest
-          ${{ secrets.DOCKER_USERNAME }}/qls-backend:${{ github.run_number }}
+          ${{ secrets.DOCKER_USERNAME }}/congcu:latest
+          ${{ secrets.DOCKER_USERNAME }}/congcu:${{ github.run_number }}
+
+    - name: Triển khai lên DevOps Classroom
+      run: |
+        # Đã cập nhật REPO thành congcu
+        REPO="${{ secrets.DOCKER_USERNAME }}/congcu"
+        CONTAINER_PORT=80
+        # Đã để slot=5 theo Dashboard của bạn
+        RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST "${{ secrets.DEPLOY_URL }}?repo=$REPO&tag=latest&slot=5&container_port=$CONTAINER_PORT&strict_container_port=0")
+        BODY=$(echo "$RESPONSE" | sed "$d")
+        CODE=$(echo "$RESPONSE" | tail -n1)
+        echo "Webhook HTTP: $CODE"
+        if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
+          echo "Deploy thất bại. Xem chi tiết trong nhóm log bên dưới."
+          echo "::group::Chi tiết webhook JSON"
+          echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
+          echo "::endgroup::"
+          exit 1
+        fi
+        echo "Deploy thành công."
+        echo "::group::Chi tiết webhook JSON"
+        echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
+        echo "::endgroup::"
